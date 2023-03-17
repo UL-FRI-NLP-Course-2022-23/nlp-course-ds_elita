@@ -6,4 +6,4 @@ Team members:
  * `ILIJA TAVCHIOSKI`, `63180383`, `it8816@student.uni-lj.si`
  
 Group public acronym/name: `DS-elita`
- > This value will be used for publishing marks/scores. It will be known only to you and not you colleagues.
+

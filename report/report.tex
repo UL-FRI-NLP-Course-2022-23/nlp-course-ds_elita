@@ -1,0 +1,133 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% FRI Data Science_report LaTeX Template
+% Version 1.0 (28/1/2020)
+%
+% Jure Demšar (jure.demsar@fri.uni-lj.si)
+%
+% Based on MicromouseSymp article template by:
+% Mathias Legrand (legrand.mathias@gmail.com)
+% With extensive modifications by:
+% Antonio Valente (antonio.luis.valente@gmail.com)
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+\documentclass[fleqn,moreauthors,10pt]{ds_report}
+\usepackage[english]{babel}
+
+\graphicspath{{fig/}}
+
+
+
+
+%----------------------------------------------------------------------------------------
+%	ARTICLE INFORMATION
+%----------------------------------------------------------------------------------------
+
+% Header
+\JournalInfo{UL FRI Data Science - Natural Language Processing, 2022-2023}
+
+% Interim or final report
+%\Archive{Interim report}
+\Archive{Project Report}
+
+% Article title
+\PaperTitle{Paraphrasing sentences in Slovene}
+
+% Authors and their info
+\Authors{Drejc Pesjak\textsuperscript{1}, Ilija Tavchioski\textsuperscript{2}, Klemen Vovk\textsuperscript{3}}
+\affiliation{\textsuperscript{1}\textit{dp8949@student.uni-lj.si, 63180224} \textsuperscript{2}\textit{it8816@student.uni-lj.si, 63180383} \textsuperscript{3}\textit{kv4582@student.uni-lj.si, 63190317}}
+
+% Multiple authors
+%\Authors{John Doe\textsuperscript{1}, Jane Doe\textsuperscript{2}, and Mike Smith\textsuperscript{3}}
+%\affiliation{\textsuperscript{1}\textit{john.doe@fri.uni-lj.si, 63181234}}
+%\affiliation{\textsuperscript{1}\textit{jane.doe@fri.uni-lj.si, 63185678}}
+%\affiliation{\textsuperscript{1}\textit{mike.smith@fri.uni-lj.si, 63171234}}
+
+% Keywords
+\Keywords{Keyword1, Keyword2, Keyword3 ...}
+\newcommand{\keywordname}{Keywords}
+
+
+%----------------------------------------------------------------------------------------
+%	ABSTRACT
+%----------------------------------------------------------------------------------------
+
+\Abstract{
+TODO
+}
+
+%----------------------------------------------------------------------------------------
+
+\begin{document}
+
+% Makes all text pages the same height
+\flushbottom
+
+% Print the title and abstract box
+\maketitle
+
+% Removes page numbering from the first page
+\thispagestyle{empty}
+
+%----------------------------------------------------------------------------------------
+%	ARTICLE CONTENTS
+%----------------------------------------------------------------------------------------
+
+\section*{Introduction}
+The task of paraphrasing sentences is to change the original sentence while preserving the meaning it conveys. For example, \textit{Elephants consume small plants, bushes, fruit, and they can consume up to 170 kilograms of food per day.} can be paraphrased to \textit{An elephant can eat up to 170 kilograms of small plants, bushes and fruit per day.}. Paraphrasing can be used to aid machine translation, improve question answering \cite{paraphrasingtoimproveqa}, detect plagiarism and origin \cite{paraphrasestodetectorigin}, and evaluate machine-generated text (i.e. summaries) \cite{paraphrasestoevaluatetext}. This task has been greatly aided by the boom of deep learning (mainly transformers \cite{vaswani2017attention}). In this work, we tackle paraphrasing Slovene sentences by fine-tuning a large language model on a dataset of Slovene original and paraphrased sentences that have been obtained by translation from English, as there is vastly more (labeled) data available in English. 
+%------------------------------------------------
+
+\section*{Related work}
+In related work, we can find several approaches to paraphrasing sentences in English but, also in other languages as well. Here are included rule-based approaches \cite{mckeown-1979-paraphrasing} but also translation-based approaches which are the most common today, including paraphrasing with monolingual data, where there is a corpora where the first one is in one language and the second one is in the same language but after translation from another language \cite{10.3115/1073012.1073020}.
+\par
+In addition, similar methods are developed using bilingual corpora \cite{mallinson-etal-2017-paraphrasing} where the paraphrase is determined by shared translation between the languages. On the other hand, with the rise of transformers \cite{vaswani2017attention} we can find several approaches using generative models such as GPT-2 \cite{DBLP:journals/corr/abs-1911-09661} where the model is fine-tuned on a predefined dataset with paraphrasing examples and performed with decent results. In addition, there are some approaches using other techniques such as deep reinforcement learning as well \cite{li-etal-2018-paraphrase}.
+
+
+\section*{Methodology}
+
+In this section, we describe the methodology we used for the task of paraphrasing Slovene sentences.
+
+\subsection*{Dataset Collection}
+
+We used three datasets to train and evaluate our models:
+
+\begin{enumerate}
+\item \textbf{TaPaCo \cite{scherrer-2020-tapaco}}: This dataset consists of parallel sentences in multiple languages, including Slovene, and was collected from various sources. We used the Slovene portion of the dataset, which contains around 200,000 sentences, to fine-tune our language model. The dataset is available on Hugging Face\footnote{\url{https://huggingface.co/datasets/tapaco}}.
+
+\item \textbf{English Paraphrasing Data}: We used the English paraphrasing dataset from the Paraphrase.org website\footnote{\url{http://paraphrase.org/\#/download}} to generate Slovene paraphrases. We translated the original English sentences to Slovene using Google Translate and kept only the translations that were judged to be of high quality by native speakers of Slovene.
+
+\item \textbf{Paraphrasing MT Dataset \cite{rsdo4_en_sl}}: We used the English-Slovene Machine Translation dataset from the CJVT repository\footnote{\url{https://huggingface.co/datasets/cjvt/rsdo4_en_sl}} to find additional paraphrases for our evaluation. We used the original English sentences in the dataset and calculated the similarity between them. The Slovene translations of similar sentences were then used for training.
+
+\end{enumerate}
+
+\subsection*{Building a Model}
+
+We used a fine-tuned T5 language model to generate paraphrases for Slovene sentences. We adapted the \textbf{multilingual T5 model} \cite{mT5-base} for Slovene by fine-tuning it on the TAPACO dataset. We followed the methodology described in \cite{dale2021howT5} to adapt the model for Slovene. We trained the model using a batch size of 32, a learning rate of 1e-4, and for 5 epochs.
+
+In addition to the T5 model, we also experimented with a Hierarchical Refinement Quantized Variational Autoencoder \textbf{(HRQ-VAE)} model \cite{hosking-etal-2022-hierarchical} for paraphrasing Slovene sentences. The HRQ-VAE model is a generative model that uses a hierarchical refinement process to generate diverse and high-quality paraphrases. We trained the HRQ-VAE model on the TAPACO dataset using the hyperparameters recommended in the original paper.
+
+\subsection*{Evaluation}
+
+To evaluate the performance of our paraphrasing model, we will use several metrics commonly used in the paraphrasing literature, including BLEU, ROUGE, and ParaScore \cite{parascore}. Additionally, we will use two recently proposed metrics, P-BLEU \cite{cao-wan-2020-divgan-pbleu} and iBLEU \cite{ibleu2011}, which have been shown to better correlate with human judgment than traditional metrics.
+
+BLEU and ROUGE are n-gram based metrics that measure the similarity between the generated paraphrase and the reference sentence(s). ParaScore, on the other hand, is a paraphrase-specific metric that considers the degree of semantic equivalence between the two sentences.
+
+P-BLEU and iBLEU, on the other hand, are extensions of the traditional BLEU metric that consider paraphrase diversity and quality. P-BLEU measures the diversity of the generated paraphrases, while iBLEU measures the informativeness of the generated paraphrases.
+
+We will evaluate our model on a held-out test set and report the results in terms of all five metrics. Additionally, we will perform a human evaluation to assess the quality of the generated paraphrases compared to the reference sentences.
+ 
+%----------------------------------------------------------------------------------------
+%	REFERENCE LIST
+%----------------------------------------------------------------------------------------
+\bibliographystyle{unsrt}
+\bibliography{report}
+
+
+\end{document}
