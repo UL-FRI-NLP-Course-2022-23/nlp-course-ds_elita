@@ -24,12 +24,9 @@ def save_translation(path, row):
 
 
 def translate_paraphrase_data(corpus, start_index, out_path):
-    translated_paraphrases = []
     for paraphrases in tqdm(corpus[start_index:]):
-        for paraphrase in paraphrases:
-            translated_paraphrases.append(ts.translate_text(paraphrase, to_language="sl", from_language="en", translator="bing")) # bing as it is the fastest
+        translated_paraphrases = [ts.translate_text(paraphrase, to_language="sl", from_language="en", translator="bing") for paraphrase in paraphrases] # bing as it is the fastest
         save_translation(out_path, translated_paraphrases)                
-        translated_paraphrases = []
 
 if __name__ == "__main__":
     ts.preaccelerate()
