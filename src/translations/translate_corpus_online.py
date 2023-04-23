@@ -6,8 +6,8 @@ import os
 # Script that translates a tab-separated file from the parabank2 dataset (tsv, first column is the score and all further columns are paraphrases, one row contains all paraphrases)
 # from English to Slovene. The script saves the translations immediately and can be stopped (or can crash due to rate limits) and continued later (it automatically continues where it left off).
 
-DATASET_PATH = "small_parabank2.tsv"
-OUTPUT_PATH = "translated_small_parabank2.tsv"
+DATASET_PATH = "../../data/small_parabank2.tsv"
+OUTPUT_PATH = "../../translated_small_parabank2.tsv"
 
 def read_paraphrase_data(path):
     paraphrases = []

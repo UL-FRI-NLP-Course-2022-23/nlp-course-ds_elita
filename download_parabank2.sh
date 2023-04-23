@@ -1,1 +1,0 @@
-wget http://cs.jhu.edu/\~vandurme/data/parabank-2.0.zip
