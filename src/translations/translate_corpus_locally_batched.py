@@ -9,8 +9,8 @@ from itertools import chain
 # from English to Slovene. The script saves the translations immediately and can be stopped (or can crash due to rate limits) and continued later (it automatically continues where it left off).
 # Uses Slovene BMT API locally (NeMO finetuned on english-slovenian pair)
 
-DATASET_PATH = "../../data/parabank2.tsv"
-OUTPUT_PATH = "../../data/translated_parabank2.tsv"
+DATASET_PATH = "../../data/small_parabank2.tsv"
+OUTPUT_PATH = "../../data/translated_small_parabank2.tsv"
 BASE_API_URL = "http://localhost:4000"
 
 

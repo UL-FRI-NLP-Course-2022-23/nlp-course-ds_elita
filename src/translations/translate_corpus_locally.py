@@ -7,8 +7,8 @@ from requests.sessions import Session
 # from English to Slovene. The script saves the translations immediately and can be stopped (or can crash due to rate limits) and continued later (it automatically continues where it left off).
 # Uses Slovene NMT model (NeMO trained on en-sl pairs) locally for translation
 
-DATASET_PATH = "../../data/parabank2.tsv"
-OUTPUT_PATH = "../../data/translated_parabank2.tsv"
+DATASET_PATH = "../../data/small_parabank2.tsv"
+OUTPUT_PATH = "../../data/small_translated_parabank2.tsv"
 
 def read_paraphrase_data(path):
     paraphrases = []
@@ -33,7 +33,7 @@ def translate_paraphrase_data(corpus, start_index, out_path):
             }
             res = session.post("http://localhost:4000/api/translate", json=req).json()
             translated_paraphrases = res["result"]
-            save_translation(out_path, translated_paraphrases)                
+            save_translation(out_path, translated_paraphrases)
 
 if __name__ == "__main__":
     start_index = 0
