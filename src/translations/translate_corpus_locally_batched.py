@@ -57,7 +57,7 @@ def process_dataset(ix, in_path, out_path, batch_char_limit=4800):
                 # Read a single line and turn it into an array of paraphrases
                 line = line.strip()
                 split_data = line.split("\t")[1:]  # Ignore the first column as that's just the score
-                
+
                 # If this line would make the batch too long for the API, translate the current batch, save it, and put the line into the next batch
                 line_len = len("".join(split_data))
                 if (batch_size + line_len) > batch_char_limit:
@@ -66,12 +66,12 @@ def process_dataset(ix, in_path, out_path, batch_char_limit=4800):
                     split_ixs = []
                     batch = []
                     batch_size = 0
-                    
+
                 split_ixs.append(len(split_data))
                 batch.append(split_data)
                 batch_size += line_len
-                if (row_ix) > 1000:
-                    break
+
+
 if __name__ == "__main__":
     start_index = 0
     if os.path.exists(OUTPUT_PATH): # Continue where you left off
