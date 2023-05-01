@@ -7,12 +7,12 @@ def eval(dataframe):
     grade = []
 
     for i in random.Random(0).sample(range(len(dataframe)), min(100, int(len(dataframe)))):
-        print("Oceni besedile", "", dataframe.iloc[i, 0], " " ,dataframe.iloc[i, 1])
+        print("Oceni besedile", "", dataframe.iloc[i, 1], " " ,dataframe.iloc[i, 2])
         note = int(input())
 
         grade.append(note)
-        paraphrased.append(dataframe.iloc[i, 1])
-        sentence.append(dataframe.iloc[i, 0])
+        paraphrased.append(dataframe.iloc[i, 2])
+        sentence.append(dataframe.iloc[i, 1])
     
     dict = {
         "sentence" : sentence,
@@ -25,6 +25,8 @@ def eval(dataframe):
     
 
 if __name__ == "__main__":
-    df = pd.read_csv("./data/translated_small_parabank2_postproc.tsv", delimiter='\t', header=0)
+    df = pd.read_csv("./data/paraphrase_evaluation.tsv", delimiter='\t', header=0)
     df = eval(df)
     df.to_csv("./evaluation.csv", index=False)
+    print(df["grade"].mean())
+    
