@@ -7,7 +7,7 @@ def eval(dataframe):
     grade = []
 
     for i in random.Random(0).sample(range(len(dataframe)), min(100, int(len(dataframe)))):
-        print("Oceni besedile", "", dataframe.iloc[i, 1], " " ,dataframe.iloc[i, 2])
+        print("Oceni besedili", "\n  ", dataframe.iloc[i, 1], "\n  " ,dataframe.iloc[i, 2])
         note = int(input())
 
         grade.append(note)
