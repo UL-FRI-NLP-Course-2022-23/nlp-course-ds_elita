@@ -2,6 +2,8 @@ import translators as ts
 from tqdm import tqdm
 import csv
 import os
+from fp.fp import FreeProxy
+import random
 
 # Script that translates a tab-separated file from the parabank2 dataset (tsv, first column is the score and all further columns are paraphrases, one row contains all paraphrases)
 # from English to Slovene. The script saves the translations immediately and can be stopped (or can crash due to rate limits) and continued later (it automatically continues where it left off).
@@ -24,12 +26,15 @@ def save_translation(path, row):
 
 
 def translate_paraphrase_data(corpus, start_index, out_path):
+    proxy_list = FreeProxy(rand=True, timeout=0.5, elite=True).get_proxy_list(repeat=False)
+    proxy_pool = [{"http": p} for p in proxy_list]
+    print(proxy_pool)
     for paraphrases in tqdm(corpus[start_index:]):
-        translated_paraphrases = [ts.translate_text(paraphrase, to_language="sl", from_language="en", translator="bing") for paraphrase in paraphrases] # bing as it is the fastest
+        translated_paraphrases = [ts.translate_text(paraphrase, to_language="sl", from_language="en", translator="bing", proxies=random.choice(proxy_pool)) for paraphrase in paraphrases] # bing as it is the fastest
         save_translation(out_path, translated_paraphrases)                
 
 if __name__ == "__main__":
-    ts.preaccelerate()
+    #ts.preaccelerate()
     start_index = 0
     if os.path.exists(OUTPUT_PATH): # Continue where you left off
         start_index = len(read_paraphrase_data(OUTPUT_PATH))
