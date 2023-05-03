@@ -51,7 +51,7 @@
 %\affiliation{\textsuperscript{1}\textit{mike.smith@fri.uni-lj.si, 63171234}}
 
 % Keywords
-\Keywords{Keyword1, Keyword2, Keyword3 ...}
+\Keywords{Natural Language Processing, Sentence paraphrasing, Transformers}
 \newcommand{\keywordname}{Keywords}
 
 
@@ -60,7 +60,7 @@
 %----------------------------------------------------------------------------------------
 
 \Abstract{
-TODO
+With the exponential growth of the natural language processing field using deep learning methods, especially transformers, we can see many \textit{state-of-the-art} models that have great performance on various tasks such as sentiment analysis, machine translation, text generation, sentence paraphrasing and other. But, the most of these methods are trained and used only on data written in English, our research goal is to develop a method for sentence paraphrasing in Slovenian language. We fine-tunned an already pre-trained GPT model (the Slovenian variant) on Slovenian data, and we achieved a decent performance on our test data having a high mean grade from the human evaluators for our model. Although the model performance have many flaws, this is the first of the many steps to enrich the family of transformer-based models to other languages such as Slovenian.
 }
 
 %----------------------------------------------------------------------------------------
@@ -94,35 +94,105 @@ In addition, similar methods are developed using bilingual corpora \cite{mallins
 
 In this section, we describe the methodology we used for the task of paraphrasing Slovene sentences.
 
-\subsection*{Dataset Collection}
+\subsection*{Dataset creation}
 
-We used three datasets to train and evaluate our models:
+\subsubsection*{Sentence similarity in machine translation dataset}
+We explored different methods to create a dataset suitable for fine-tuning a Language Model (LM). One of the approaches we considered was using a machine translation dataset. Specifically, we used the cjvt/rsdo4\_en\_sl dataset \cite{rsdo4_en_sl}, which consists of one million translated sentences from English to Slovene. Our goal was to find similar sentences in English and extrapolate their Slovene counterparts, thereby creating a parallel dataset for training our LM.
 
-\begin{enumerate}
-\item \textbf{TaPaCo \cite{scherrer-2020-tapaco}}: This dataset consists of parallel sentences in multiple languages, including Slovene, and was collected from various sources. We used the Slovene portion of the dataset, which contains around 200,000 sentences, to fine-tune our language model. The dataset is available on Hugging Face\footnote{\url{https://huggingface.co/datasets/tapaco}}.
+To achieve this, we used cosine distance on BERT embeddings \cite{reimers-2019-sentence-bert} to measure the similarity between sentences in English and Slovene. We found that despite using a state-of-the-art language model, the results were not satisfactory. Out of the first 10,000 sentences, only 200 pairs had a similarity score higher than 95\%. This was not sufficient for fine-tuning a LM, as we required a larger dataset to improve the performance of our model. Therefore, we concluded that using a machine translation dataset alone was not effective in creating a high-quality parallel corpus.
 
-\item \textbf{English Paraphrasing Data}: We used the English paraphrasing dataset from the Paraphrase.org website\footnote{\url{http://paraphrase.org/\#/download}} to generate Slovene paraphrases. We translated the original English sentences to Slovene using Google Translate and kept only the translations that were judged to be of high quality by native speakers of Slovene.
+\subsubsection*{Slovene paraphrasing with GPT prompting}
+Another approach we tried for creating a Slovene paraphrasing dataset was using GPT prompting. We used the cvjt/gpt-sl-base model \cite{huggingface_gptslbase} to generate paraphrases for the given input sentence. To do this, we prompted the GPT model to complete the original sentence with a paraphrased version. For instance, given the input sentence "Today is a beautiful day," we prompted the model with the phrase "\{input\_sentence\}, oziroma drugače," which translates to "\{input\_sentence\}, or in other words."
 
-\item \textbf{Paraphrasing MT Dataset \cite{rsdo4_en_sl}}: We used the English-Slovene Machine Translation dataset from the CJVT repository\footnote{\url{https://huggingface.co/datasets/cjvt/rsdo4_en_sl}} to find additional paraphrases for our evaluation. We used the original English sentences in the dataset and calculated the similarity between them. The Slovene translations of similar sentences were then used for training.
+We found that this approach produced some promising results, with the GPT model generating a range of plausible paraphrased sentences for a given input. However, there were some issues with this approach. One of the main problems was the slow speed of the model. The cvjt/gpt-sl-base model \cite{huggingface_gptslbase} is a large language model with more than 125 million parameters, and generating paraphrases for a single sentence could take up to several minutes. Additionally, it was sometimes challenging to determine where the GPT model ended the paraphrased sentence. This made it challenging to identify the start and end points of the generated paraphrase, making it challenging to create a high-quality dataset.
+%In the end, not enough data could be generated so we abandoned this method and considered premade datasets.
 
-\end{enumerate}
+\subsubsection*{Machine translation of a paraphrase dataset}
+The ParaBank2 dataset \cite{hu2019parabank} is a large corpus of 18 million paraphrased English sentences that has been utilized as a data source for our research. Our objective was to obtain the Slovene translations of the English sentences, which we approached through two methods.
+
+First, we attempted to use machine translation tools such as DeepL, Google Translate, and other alternatives to generate the translations. Although these tools produced more accurate translations than the Slovene neural machine translation (NMT) model \cite{lebar2022neural}, the translation speed was too slow, even when employing proxies to circumvent rate limiting. Consequently, we found this approach unsuitable for amassing a sufficiently large dataset for model fine-tuning.
+
+As an alternative, we utilized the SloveneNMT model \cite{lebar2022neural} to translate the ParaBank2 dataset locally. As there is no rate limiting associated with this model, we selected the top 100,000 rows of the ParaBank2 dataset \cite{hu2019parabank}, which are ordered in descending order of paraphrase quality, for translation. This process was computationally demanding and required 10 hours of processing on an RTX 3090 with 24GB of VRAM. We should note that during translation, some paraphrased sentences were translated into identical sentences, resulting in duplicates that were removed before model fine-tuning.
 
 \subsection*{Building a Model}
+For building our model, we used the GPT-sl-base language model \cite{huggingface_gptslbase}, which is a Slovene variant of the GPT family of models. This model was based on the BigScience workshop fork of Megatron and was pre-trained on large Slovene corpora, including Gigafida, KAS, slWaC, and MaCoCu. With about 110 million parameters, it has 12 transformer layers, a dimension of 768, and 16 attention heads. This model can process sequences up to 1024 tokens in length and has a tokenizer trained on a smaller subset of corpora, with a vocabulary of 60k tokens.
 
-We used a fine-tuned T5 language model to generate paraphrases for Slovene sentences. We adapted the \textbf{multilingual T5 model} \cite{mT5-base} for Slovene by fine-tuning it on the TAPACO dataset. We followed the methodology described in \cite{dale2021howT5} to adapt the model for Slovene. We trained the model using a batch size of 32, a learning rate of 1e-4, and for 5 epochs.
+Before fine-tuning the GPT-sl-base model on the generated dataset, we split the translated dataset into three separate sets for training, evaluation, and testing. Specifically, we used a split of 60\%, 20\%, and 20\% for the training, evaluation, and testing sets, respectively. This allowed us to train the model on a sufficiently large dataset while also evaluating its performance on unseen data to ensure that the model was not overfitting to the training set.
 
-In addition to the T5 model, we also experimented with a Hierarchical Refinement Quantized Variational Autoencoder \textbf{(HRQ-VAE)} model \cite{hosking-etal-2022-hierarchical} for paraphrasing Slovene sentences. The HRQ-VAE model is a generative model that uses a hierarchical refinement process to generate diverse and high-quality paraphrases. We trained the HRQ-VAE model on the TAPACO dataset using the hyperparameters recommended in the original paper.
+To fine-tune this pre-trained GPT-sl-base model on our generated dataset, we used transfer learning. The idea behind transfer learning is to take a pre-trained model, which has already learned features on large datasets, and use it to adapt to a new, smaller dataset. We fine-tuned the GPT-sl-base model using the dataset we created in the earlier stages of our project. During the fine-tuning process, we trained the model for 3 epochs with a batch size of 16 and a learning rate of 5e-5. We trained the model on a Kaggle platform, on a double Tesla T4 GPU with 16GB of memory, and the training took approximately 12 hours before capping out due to Kaggle limitations.
+
+The results of the fine-tuned model were quite promising, with a training loss drop from 0.36 to 0.076. Although we were not able to train the model for the intended number of epochs, we still managed to achieve a considerable improvement in the model's performance on the generated dataset. This demonstrates that the GPT-sl-base model is an effective starting point for the development of a Slovene paraphrasing LM. Further work could explore the use of other pre-trained models or larger datasets to achieve even better results.
+
 
 \subsection*{Evaluation}
 
-To evaluate the performance of our paraphrasing model, we will use several metrics commonly used in the paraphrasing literature, including BLEU, ROUGE, and ParaScore \cite{parascore}. Additionally, we will use two recently proposed metrics, P-BLEU \cite{cao-wan-2020-divgan-pbleu} and iBLEU \cite{ibleu2011}, which have been shown to better correlate with human judgment than traditional metrics.
+To evaluate the performance of the fine-tuned GPT-sl-base model, we used the BLEU score \cite{Papineni2002BleuAM}, which is a commonly used metric for evaluating the quality of machine translation output. BLEU stands for "bilingual evaluation understudy" and compares a machine-generated translation to one or more human-generated translations. The score is calculated by comparing the number of n-grams (contiguous sequences of words) in the machine-generated translation that also appear in the human-generated translation(s). The BLEU score ranges from 0 to 1, with 1 indicating a perfect match between the machine-generated and human-generated translations.
 
-BLEU and ROUGE are n-gram based metrics that measure the similarity between the generated paraphrase and the reference sentence(s). ParaScore, on the other hand, is a paraphrase-specific metric that considers the degree of semantic equivalence between the two sentences.
+In our case, we used the BLEU score to evaluate the performance of our model in generating paraphrases in Slovene. We evaluated the model on a test set of 1000 sentence pairs, where each sentence was paraphrased by our fine-tuned GPT-sl-base model. We then calculated the BLEU score for each pair of sentences and reported the mean and standard deviation of the scores. The mean BLEU score we obtained was 0.515 with a standard deviation of 0.255.
 
-P-BLEU and iBLEU, on the other hand, are extensions of the traditional BLEU metric that consider paraphrase diversity and quality. P-BLEU measures the diversity of the generated paraphrases, while iBLEU measures the informativeness of the generated paraphrases.
+While the BLEU score is a widely used metric for evaluating machine translation, it has some limitations. One limitation is that it only considers the number of matching n-grams in the machine-generated and human-generated translations and does \textbf{not take into account the semantic similarity} between the two. Furthermore, the BLEU score can be misleading when evaluating translations that are significantly different from the reference translation(s). In our case, as we were evaluating paraphrasing, the BLEU score could only capture some aspects of the quality of the generated sentences, and it is important to consider additional metrics, such as human evaluation, to fully assess the quality of the generated paraphrases.
 
-We will evaluate our model on a held-out test set and report the results in terms of all five metrics. Additionally, we will perform a human evaluation to assess the quality of the generated paraphrases compared to the reference sentences.
- 
+%To evaluate the performance of our paraphrasing model, we will use several metrics commonly used in the paraphrasing literature, including BLEU, ROUGE, and ParaScore \cite{parascore}. Additionally, we will use two recently proposed metrics, P-BLEU \cite{cao-wan-2020-divgan-pbleu} and iBLEU \cite{ibleu2011}, which have been shown to better correlate with human judgment than traditional metrics.
+
+%BLEU and ROUGE are n-gram based metrics that measure the similarity between the generated paraphrase and the reference sentence(s). ParaScore, on the other hand, is a paraphrase-specific metric that considers the degree of semantic equivalence between the two sentences.
+
+%P-BLEU and iBLEU, on the other hand, are extensions of the traditional BLEU metric that consider paraphrase diversity and quality. P-BLEU measures the diversity of the generated paraphrases, while iBLEU measures the informativeness of the generated paraphrases.
+
+%We will evaluate our model on a held-out test set and report the results in terms of all five metrics. Additionally, we will perform a human evaluation to assess the quality of the generated paraphrases compared to the reference sentences.
+
+
+\subsection*{Human evaluation}
+In addition to the previous metrics for evaluation, we added the human evaluation where we considered three people that are familiar with the problem and have different biases towards the data. Since the dataset is too large and consequently would take an enormous amount of time to manually evaluate each pair of sentences, we randomly selected 100 instances for evaluation. Our grade system was composed of five numerical grades (1, 2, 3, 4, 5), where 5 means that the meaning of the paraphrased sentence is totally matched with the meaning of the original sentence and 1 means that the meaning of the paraphrased and the original sentence is completely unmatched.
+
+\begin{figure}[!hbt]
+    \centering
+    \includegraphics[width=\linewidth, height=6.5cm]{fig/fig.png}
+    \caption{Box plot of evaluators on similarity of 100 sentence pairs.}
+    \label{fig:eval_res}
+\end{figure}
+As we can see on Figure \ref{fig:eval_res}, the results from the first two evaluators show decent performance of the fine-tunned model.
+
+
+
+\section*{Discussion}
+In general the performance of the model is very accurate on short sentences and paragraphs (ex. original sentence: "V slab\v{s}em polo\v{z}aju smo.", and paraphrased: "mi smo v slab\v{s}em polo\v{z}aju."). The model can perfectly handle numbers (ex. original sentence: "\v{s}tiri dolarje in 27 centov.", and paraphrased: "\v{s}tiri dolarje in sedemintrideset centov."), and also there were a lot short sentences that were duplicated, mainly because of the fact that they were too short to be paraphrased. The models also can handle acronyms form paragraphs related to laws (ex. original sentence: "Uradni list Evropske unije L 210 z dne 31. julija 2006", and paraphrased: "(UL L 210, 31. julij 2006"). On the other hand, the model failed to paraphrase the longer sentences, a common occurrence is to first successfully paraphrase the sentence and then add some meaningless random text, since the model failed to generate the "end of sentence" token. Also the model uses the change of gender related pronouns to paraphrase the original sentence which is not correct.
+% it works well on short sentences
+%   V slabšem položaju smo. 
+%   mi smo v slabšem položaju.
+
+% alot of duplicated sentences
+%   Rešitev je gospodarska rast. 
+%   Rešitev je gospodarska rast.
+
+% sometimes it returns weird random strings at the end of the paraphrase
+%   Sodelovanje na področju boja proti terorizmu lahko poteka tudi s posameznimi državami, regijami ali mednarodnimi, regionalnimi ali podregionalnimi organizacijami; 
+%   Sodelovanje v boju proti terorizmu se lahko vzpostavi tudi s posameznimi državami, regijami ali mednarodnimi, regionalnimi ali podregionalnimi organizacijami;pacocentriz ustavitspremljevalkaSchiff Združenj vrh Bocvandrobnosti bilančn
+
+% there are a lot of law text
+%   (Uradni list Evropske unije L 210 z dne 31. julija 2006) 
+%   (UL L 210, 31. julij 2006)
+
+% it can handle even numbers
+%   štiri dolarje in sedemintrideset centov. 
+%   štiri dolarje in 37 centov.
+
+
+%\section*{Results}
+
+
+\section*{Conclusion}
+In conclusion, we collected the data in Slovenian language for our research, trained a large language models such as GPT, but the Slovenian variant, and achieved decent performance which can be comparable with the paraphrasing models that are on other languages except English, since a lot of work is done only for the English language. Although the model has lower performance with the longer sentences and paragraphs, it works very well on short sentences and paragraphs which shows promising results.
+\subsection*{Future work}
+Our next goal would be to improve our fine-tunned GPT model in term of performance by selecting better fine-tunning parameters, by enlargement of the dataset or consider some other some other pre-trained large language models for text generation.
+\par
+Also, we would like to enrich our set of performance metrics by adding the ROUGE metric, more precisely ROUGE-L metric which will compare the Longest Common Subsequence between the generated paraphrased sentence and the true paraphrased sentence.
+\par
+In addition to the computational evaluation, we would like to improve the human evaluation by considering more instances for comparison which will give us a better of the performance of our fine-tunned model.
+
+%- make paraGPT better??
+%- comp. eval: ROUGE and other scores
+%- human eval: add syntax difference score
+
 %----------------------------------------------------------------------------------------
 %	REFERENCE LIST
 %----------------------------------------------------------------------------------------
