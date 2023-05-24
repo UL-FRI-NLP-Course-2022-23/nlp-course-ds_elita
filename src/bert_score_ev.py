@@ -5,6 +5,7 @@ from transformers import AutoTokenizer, AutoModel, AutoModelForMaskedLM
 from sklearn.metrics.pairwise import cosine_similarity
 
 df = pd.read_csv("./data/paraphrase_evaluation.tsv",delimiter='\t', header=0)
+df2 = pd.read_csv("./data/translated_small_parabank2_postproc.tsv", delimeter='\t', header=0)
 
 
 tokenizer = AutoTokenizer.from_pretrained("EMBEDDIA/sloberta")
@@ -26,5 +27,5 @@ for i in range(len(df)):
         embeddings_pred = outputs.last_hidden_state.mean(dim=1).squeeze()
         res.append(cosine_similarity(embeddings_ref.reshape((1, -1)), embeddings_pred.reshape((1, -1)))[0][0])
 
-df["3"] = res
+df["BERT_SCORE"] = res
 df.to_csv("./new.csv", index=False)
