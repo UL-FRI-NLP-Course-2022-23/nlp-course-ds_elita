@@ -3,6 +3,7 @@ import pandas as pd
 
 df = pd.read_csv("./data/translated_small_parabank2_postproc.tsv",delimiter='\t', header=0)
 df = df[:int(0.6 * int(len(df)))]
+print(len(df))
 n = int(len(df))
 print(n)
 avg_sen_w_r = 0
@@ -21,6 +22,7 @@ all_word_r = 0
 all_word_p = 0
 
 for i in range(n):
+    break
     print(i)
     if not isinstance(df.iloc[i, 0], str):
         continue
@@ -61,7 +63,7 @@ print("Max word in sentence", max_sen_w_r, max_sen_w_p)
 print("Max chars in word", max_w_char_r, max_w_char_p)
 
 
-df = pd.read_csv("./data/paraphrase_evaluation.tsv",delimiter='\t', header=0)
+df = pd.read_csv("./data/eval.csv")
 n = int(len(df))
 print(n)
 avg_sen_w_r = 0

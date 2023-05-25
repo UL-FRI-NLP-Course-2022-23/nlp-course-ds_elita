@@ -15,7 +15,7 @@ res = rouge.compute(references=references, predictions=preds)
 print(res)
 print("Izleze")
 """
-rouge = evaluate.load("rouge")
+rouge = evaluate.load("bleu")
 df = pd.read_csv("./data/evaluation_old_model.csv")
 arr = []
 for i in range(len(df)):
@@ -25,7 +25,7 @@ for i in range(len(df)):
     if not isinstance(df["1"][i], str):
         continue
     res = rouge.compute(references=references, predictions=preds)
-    arr.append(res["rougeL"])
+    arr.append(res["bleu"])
 arr = np.array([arr])
 
 print(np.mean(arr))
@@ -41,7 +41,7 @@ for i in range(len(df)):
     if not isinstance(df["1"][i], str):
         continue
     res = rouge.compute(references=references, predictions=preds)
-    arr.append(res["rougeL"])
+    arr.append(res["bleu"])
 arr = np.array([arr])
 
 print(np.mean(arr))
@@ -56,7 +56,7 @@ for i in range(len(df)):
     if not isinstance(df["Ocean Cup narodov 2004"][i], str):
         continue
     res = rouge.compute(references=references, predictions=preds)
-    arr.append(res["rougeL"])
+    arr.append(res["bleu"])
 arr = np.array([arr])
 
 print(np.mean(arr))
@@ -66,13 +66,5 @@ print(np.std(arr))
 
 
 
-
-rouge = evaluate.load("rouge")
-references = df["2004 Ocean Cup narodov"].to_list()
-preds = df["Ocean Cup narodov 2004"].to_list()
-
-res = rouge.compute(references=references, predictions=preds)
-
-print(res)
 
 #{'rouge1': 0.7283420257160238, 'rouge2': 0.5799825126255123, 'rougeL': 0.702052156245857, 'rougeLsum': 0.7018812556579996}
