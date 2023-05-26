@@ -6,7 +6,7 @@ def eval(dataframe):
     paraphrased = []
     grade = []
 
-    for i in random.Random(0).sample(range(len(dataframe)), min(100, int(len(dataframe)))):
+    for i in random.Random(42).sample(range(len(dataframe)), min(300, int(len(dataframe)))):
         print("Oceni besedili", "\n  ", dataframe.iloc[i, 1], "\n  " ,dataframe.iloc[i, 2])
         note = int(input())
 
