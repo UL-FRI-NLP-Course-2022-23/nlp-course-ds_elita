@@ -17,10 +17,11 @@ print("Izleze")
 """
 rouge = evaluate.load("rouge")
 df = pd.read_csv("./data/evaluation_old_model.csv")
+df2 = pd.read_csv("./data/eval.csv")
 arr = []
 for i in range(len(df)):
    
-    references = [df["0"][i]]
+    references = [df2["2004 Ocean Cup narodov"][i]]
     preds = [df["1"][i]]
     if not isinstance(df["1"][i], str):
         continue
@@ -36,7 +37,7 @@ df = pd.read_csv("./data/evaluation_new_model.csv")
 arr = []
 for i in range(len(df)):
     
-    references = [df["0"][i]]
+    references = [df2["2004 Ocean Cup narodov"][i]]
     preds = [df["1"][i]]
     if not isinstance(df["1"][i], str):
         continue
@@ -46,8 +47,8 @@ arr = np.array([arr])
 
 print(np.mean(arr))
 print(np.std(arr))
+"""
 
-df = pd.read_csv("./data/eval.csv")
 arr = []
 for i in range(len(df)):
    
@@ -76,3 +77,4 @@ res = rouge.compute(references=references, predictions=preds)
 print(res)
 
 #{'rouge1': 0.7283420257160238, 'rouge2': 0.5799825126255123, 'rougeL': 0.702052156245857, 'rougeLsum': 0.7018812556579996}
+"""

@@ -4,16 +4,16 @@ import torch
 from transformers import AutoTokenizer, AutoModel, AutoModelForMaskedLM
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
-"""
+
 df = pd.read_csv("./data/evaluation_old_model.csv")
 
-
+df2 = pd.read_csv("./data/eval.csv")
 tokenizer = AutoTokenizer.from_pretrained("EMBEDDIA/sloberta")
 model = AutoModel.from_pretrained("EMBEDDIA/sloberta")
 res = []
 for i in range(len(df)):
     #rint(i)
-    references = str(df["0"][i])
+    references = str(df2["2004 Ocean Cup narodov"][i])
     tokens_ref = tokenizer(references, return_tensors="pt")
 
     predictions = str(df["1"][i])
@@ -35,7 +35,7 @@ df = pd.read_csv("./data/evaluation_new_model.csv")
 
 res = []
 for i in range(len(df)):
-    references = str(df["0"][i])
+    references = str(df2["2004 Ocean Cup narodov"][i])
     tokens_ref = tokenizer(references, return_tensors="pt")
 
     predictions = str(df["1"][i])
@@ -52,6 +52,7 @@ res = np.array(res)
 
 print(np.mean(res))
 print(np.std(res))
+
 """
 df = pd.read_csv("./data/eval.csv")
 
@@ -79,3 +80,4 @@ res = np.array(res)
 
 print(np.mean(res))
 print(np.std(res))
+"""

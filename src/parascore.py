@@ -18,9 +18,10 @@ print("Izleze")
 """
 rouge = evaluate.load("transZ/test_parascore")
 df = pd.read_csv("./data/evaluation_old_model.csv")
+df2 = pd.read_csv("./data/eval.csv")
 arr = []
 
-references = df["0"].to_list()
+references =df2["2004 Ocean Cup narodov"].to_list()
 preds = df["1"].to_list()
 
 res = rouge.compute(references=references, predictions=preds)
@@ -34,7 +35,7 @@ df = pd.read_csv("./data/evaluation_new_model.csv")
 
 arr = []
 
-references = df["0"].to_list()
+references = df2["2004 Ocean Cup narodov"].to_list()
 preds = df["1"].to_list()
 
 res = rouge.compute(references=references, predictions=preds)
@@ -45,7 +46,7 @@ print(np.mean(arr))
 print(np.std(arr))
 
 
-
+"""
 df = pd.read_csv("./data/eval.csv")
 arr = []
 
@@ -58,6 +59,7 @@ arr = np.array(res["score"])
 
 print(np.mean(arr))
 print(np.std(arr))
+"""
 
 
 
